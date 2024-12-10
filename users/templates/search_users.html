@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-3">
+
+    <!-- Display Invite message -->
+    {% if messages %}
+        {% for message in messages %}
+            {% if 'invite' in message.tags %}
+                <div class="alert alert-success text-center">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    {% if project_id %}
+        <h2 class="mb-4 text-center">Invite Users to <strong>"{{ selected_project.name }}"</strong></h2>
+    {% else %}
+        <h1 class="mb-4 text-center">All Users</h1>
+    {% endif %}
+    
+    <!-- Search Bar -->
+    <form method="get" action="{% url 'search_users' %}" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" placeholder="Search users by name, username, or bio..." value="{{ search_query }}" class="form-control">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+
+    <div class="row">
+        {% if users %}
+            {% for user in users %}
+            <!-- add all col to make a responsive layout depending on screen size-->
+            <div class="col-12 col-md-6 col-lg-4 mx-auto mb-3">
+                <!-- make the entire card clickable by wrapping it in an <a> tag -->
+                <!-- no underlines or blue coloring for the text -->
+                <a href="{% url 'view_profile' user.id %}" class="text-decoration-none text-dark">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="text-center">
+                                <h5 class="card-title mt-3">{{ user.get_full_name|default:user.username}}</h5>
+
+                                {% if user.profile.bio %}
+                                    <p class="card-text">{{ user.profile.bio|truncatechars:100 }}</p>
+                                {% else %}
+                                    <p class="text-muted mb-0"><em>No description available.</em></p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-center">
+                            {% if request.user|is_admin %}
+                                <a href="{% url 'view_profile' user.id %}" class="btn btn-outline-success w-100">View Profile</a>
+                            {% elif user|is_admin %}
+                                <a href="{% url 'view_profile' user.id %}" class="btn btn-outline-success w-100">View Admin Profile</a>
+                            {% else %}
+                                {% if project_id %}
+                                    <form method="POST" action="{% url 'manage_invites' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="project_id" value="{{ project_id }}">
+                                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                                        <button type="submit" class="btn btn-outline-success w-100">Invite</button>
+                                    </form>
+                                {% else %}
+                                    <a href="{% url 'select_project_for_invite' user.id %}" class="btn btn-outline-success w-100">Invite</a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        {% else %}
+            {% if search_query %}
+                <p class="text-center">There are no other users matching your search criteria.</p>
+            {% else %}
+                <p class="text-center">There are no other users at the moment.</p>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+<script src="{% static 'actions.js' %}"></script>

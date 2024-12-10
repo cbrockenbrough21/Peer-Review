@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-3">
+    <h1 class="mb-4 text-center">Popular Projects</h1>
+    <div class="row">
+        {% for project in projects %}
+            {% if not project.is_private %}
+                <div class="col-md-5 mx-auto mb-3">
+                    <div class="card shadow-sm">
+                        <!-- Card Header -->
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <!-- Project Title -->
+                            <h5 class="card-title mb-0">{{ project.name }}</h5>
+
+                            <!-- Upvote Button and Count -->
+                            <div class="d-flex align-items-center border border-light rounded p-0 bg-light">
+                                <button
+                                    class="btn btn-sm me-2"
+                                    onclick="upvoteProject('{{ project.id }}')"
+                                    id="upvote-button-{{ project.id }}">
+                                    <i class="fas fa-arrow-up {% if project.user_has_upvoted %}filled{% endif %}"
+                                    id="upvote-icon-{{ project.id }}"></i>
+                                </button>
+                                <span id="upvote-count-{{ project.id }}" class="me-3 text-dark">{{ project.upvotes }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Top Section: Topic, Due Date, Owner, and Reviewers -->
+                                <div class="d-flex justify-content-between mb-3">
+                                    <!-- Left: Topic and Due Date -->
+                                    <div>
+                                        <div>
+                                            <strong>Topic:</strong> {{ project.category }}
+                                        </div>
+                                        <div>
+                                            <strong>Due Date:</strong> {{ project.due_date }}
+                                        </div>
+                                    </div>
+                        
+                                    <!-- Right: Owner and Reviewers -->
+                                    <div class="text-end">
+                                        <div>
+                                            <strong>Owner:</strong>
+                                            <a href="{% url 'view_profile' project.owner.id %}" class="text-decoration-none">
+                                                {{ project.owner.get_full_name|default:project.owner.username }}
+                                            </a>
+                                        </div>
+                                        <div>
+                                            <strong>Reviewers:</strong> {{ project.current_reviewers_count }} / {{ project.number_of_reviewers }}
+                                        </div>
+                                    </div>
+                                </div>
+                        
+                                <!-- Description Section -->
+                                <div>
+                                    <h6 class="mt-0 mb-1 fw-bold">About:</h6>
+                                    {% if project.description %}
+                                        <p class="card-text text-muted">{{ project.description|truncatechars:200 }}</p>
+                                    {% else %}
+                                        <p class="text-muted"><em>No description available.</em></p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>                                     
+
+                        <!-- Card Footer -->
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{% url 'project_main_view' project.name project.id %}" class="btn btn-outline-info btn-sm btn-uniform">View</a>
+                            </div>
+                            <div>
+                                {% if user.is_authenticated %}
+                                    {% if project.owner.id == request.user.id %}
+                                        <!-- Owner State -->
+                                        <span class="btn btn-uniform btn-owner">Owner</span>
+                                    {% elif project.pending_request %}
+                                        <!-- Pending Request State -->
+                                        <span class="btn btn-uniform btn-warning">Request Pending</span>
+                                    {% elif request.user in project.members.all %}
+                                        <!-- Member State -->
+                                        <span class="btn btn-uniform btn-success">Member</span>
+                                    {% elif project.current_reviewers_count == project.number_of_reviewers %}
+                                        <!-- Project Full -->
+                                        <span class="btn btn-uniform btn-danger">Project Full</span>
+                                    {% else %}
+                                        <!-- Not a Member State -->
+                                        <form action="{% url 'request_to_join' project.id %}" method="post" class="d-inline-block">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-primary btn-sm btn-uniform">Request to Join</button>
+                                        </form>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>                        
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<script src="{% static 'actions.js' %}"></script>
+<style>
+    /* Uniform button styling */
+    .btn-uniform {
+        width: 150px;
+        text-align: center;
+        padding: 0.5rem 0;
+        font-size: 0.875rem;
+        border-radius: 0.25rem;
+    }
+
+    .btn-owner {
+        background-color: #001f3f; /* Navy blue */
+        color: white;
+        border: none;
+    }
+
+    .btn-warning {
+        background-color: #ffc107; /* Yellow */
+        color: black;
+    }
+
+    .btn-danger {
+        background-color: #dc3545; /* Red */
+        color: white;
+    }
+
+    .btn-success {
+        background-color: #28a745; /* Green */
+        color: white;
+    }
+
+    /* No hover effects for non-actionable buttons */
+    .btn-owner,
+    .btn-success,
+    .btn-warning,
+    .btn-danger {
+        pointer-events: none; /* Disable hover and interaction */
+        cursor: default;
+    }
+
+    /* Hover effect only for actionable buttons */
+    .btn-primary:hover {
+        background-color: #0056b3; /* Darker blue */
+        border-color: #004085;
+        color: white;
+    }
+
+    /* Optional: Subtle hover effect for 'View' button */
+    .btn-outline-info:hover {
+        background-color: #17a2b8;
+        color: white;
+    }
+</style>
+
+{% endblock %}

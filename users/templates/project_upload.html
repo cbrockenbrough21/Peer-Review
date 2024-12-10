@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block content %}
+{% load static %}
+
+<div class="container mt-4 mb-4">
+    {% if user.is_authenticated %}
+        {% if user in project.members.all %}
+            <!-- File Upload Section -->
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h1 class="mb-0">Upload File for: {{ project.name }}</h1>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" enctype="multipart/form-data" class="mb-3">
+                                {% csrf_token %}
+
+                                <!-- Display Non-field Errors -->
+                                {% if form.non_field_errors %}
+                                    <div class="alert alert-danger">
+                                        {{ form.non_field_errors }}
+                                    </div>
+                                {% endif %}
+
+                                <!-- Name Field -->
+                                <div class="mb-3">
+                                    {{ form.name.label_tag }}
+                                    {{ form.name|add_class:"form-control" }}
+                                    {% if form.name.errors %}
+                                        <div class="text-danger">
+                                            {{ form.name.errors|join:", " }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Description Field -->
+                                <div class="mb-3">
+                                    {{ form.description.label_tag }}
+                                    {{ form.description|add_class:"form-control" }}
+                                </div>
+
+                                <!-- Keywords Field -->
+                                <div class="mb-3">
+                                    {{ form.keywords.label_tag }}
+                                    {{ form.keywords|add_class:"form-control" }}
+                                </div>
+
+                                <!-- Drag-and-Drop File Upload Section -->
+                                <div id="drag-and-drop-area" class="mb-3" style="width: 100%; height: 200px; border-radius: 20px; border: 2px dashed #cecdd1; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer;">
+                                    <input type="file" id="file-input" name="file" class="d-none" />
+                                    <div>
+                                        <img src="{% static 'images/upload-icon.png' %}" alt="Upload" style="max-width: 75px; height: auto;">
+                                    </div>
+                                    <p>Drag and drop or click here to upload a file</p>
+                                    <div id="file-name" class="text-center text-muted">No file selected</div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100">Upload</button>
+                                    <!-- Back to Project Button -->
+                                <a href="{% url 'project_main_view' project.name project.id %}" class="btn btn-secondary w-100 mt-3">Back to Project</a>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <p>You are not a member of this project. Please request to join.</p>
+            <form action="{% url 'request_to_join' project.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">Request to Join</button>
+            </form>
+        {% endif %}
+    {% else %}
+        <p>You need to log in to upload files.</p>
+    {% endif %}
+
+</div>
+
+<script>
+    const dropArea = document.getElementById('drag-and-drop-area');
+    const fileInput = document.getElementById('file-input');
+    const fileNameDisplay = document.getElementById('file-name');
+
+    dropArea.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function(event) {
+        const files = event.target.files;
+        if (files.length > 0) {
+            fileNameDisplay.textContent = files[0].name;
+        }
+    });
+
+    dropArea.addEventListener('dragover', function(event) {
+        event.preventDefault();
+        dropArea.style.backgroundColor = '#f0f0f0';
+    });
+
+    dropArea.addEventListener('drop', function(event) {
+        event.preventDefault();
+        dropArea.style.backgroundColor = '#ffffff';
+
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+            fileNameDisplay.textContent = files[0].name;
+            fileInput.files = files;
+        }
+    });
+</script>
+
+{% endblock %}

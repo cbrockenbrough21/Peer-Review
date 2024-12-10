@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container mt-3">
+    <h1 class="mb-4">Your Pending Invitations</h1>
+
+    <!-- Display Invite message  -->
+    {% if messages %}
+        {% for message in messages %}
+            {% if 'invite-response' in message.tags %}
+                <div class="alert alert-success text-center">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+
+    {% if pending_invitations %}
+        <ul class="list-group">
+            {% for invite in pending_invitations %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <p class="mb-0">
+                        <a href="{% url 'view_profile' invite.invited_by.id %}" class="text-decoration-none" title="Click to view profile details"><strong>{{ invite.invited_by.get_full_name|default:invite.invited_by.username }}</strong></a>
+                        has invited you to join
+                        <a href="{% url 'project_main_view' invite.project.name invite.project.id %}" class="text-decoration-none" title="Click to view project details"><strong>{{ invite.project.name }}</strong>.</a>
+                    </p>
+
+                    <form method="post" action="{% url 'handle_invitation' invite.id %}" style="display:inline;">
+                        {% csrf_token %}
+                            <button type="submit" name="action" value="accept" class="btn btn-success">Accept</button>
+                            <button type="submit" name="action" value="decline" class="btn btn-danger">Decline</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have no pending invitations at the moment.</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

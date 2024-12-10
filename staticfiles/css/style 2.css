@@ -1,0 +1,23 @@
+body {
+    background-color: dimgrey;
+}
+
+a {
+    color: darkseagreen;
+}
+
+.custom-btn {
+    background-color: white;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    text-decoration: none;
+}
+
+.custom-btn:hover {
+    background-color: #f0f0f0; /* Light grey when hovered */
+    color: #333; /* Optional: change text color on hover */
+    border-color: #b3b3b3;
+}

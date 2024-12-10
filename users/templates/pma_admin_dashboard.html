@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %} PMA Administrator Dashboard {% endblock %}
+
+{% block content %}
+    <h1>Welcome, {{ user_name }}! (PMA Administrator)</h1>
+    <p>You can manage all projects and files here.</p>
+
+    <div class="mt-4">
+        <!-- Include the Partial Template for the Project List -->
+        {% include 'partials/project_list.html' with projects=projects project_status=project_status project_permissions=project_permissions sort_by=sort_by is_pma_admin=is_pma_admin search_query=search_query%}
+    </div>
+
+    <a href="{% url 'logout' %}" class="btn btn-danger mt-4">
+        Logout
+    </a>
+{% endblock %}

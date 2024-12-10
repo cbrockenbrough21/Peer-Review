@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %} Project Dashboard {% endblock %}
+
+{% load socialaccount %} <!-- Load the socialaccount tag library -->
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Project Dashboard</h2>
+    <p class="text-muted">You are viewing the public list of projects. Please log in to gain full access to all features.</p>
+
+    <!-- Directly link to the Google login page -->
+    <a href="{% provider_login_url 'google' %}?next=/" class="btn btn-primary mb-4">
+        Login with Google
+    </a>
+
+    <div class="mt-4">
+        <!-- Include the Partial Template for the Project List -->
+        {% include 'partials/project_list.html' with projects=projects project_status=project_status project_permissions=project_permissions sort_by=sort_by is_pma_admin=is_pma_admin search_query=search_query%}
+    </div>
+    
+</div>
+{% endblock %}

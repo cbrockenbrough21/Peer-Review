@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-3 mb-3" style="max-width: 600px;">
+    {% if request.user == user %}
+        <h1 class="text-center mb-4">My Profile</h1>
+    {% else %}
+        <h1 class="text-center mb-4">{{ user.get_full_name|default:user.username }}'s Profile</h1>
+    {% endif %}
+    <div class="card shadow-sm p-4">
+        <h4 class="mb-2">About Me</h4>
+        {% if profile.bio %}
+            <p>{{ profile.bio }}</p>
+        {% else %}
+            <p class="text-muted"><em>No bio available yet.</em></p>
+        {% endif %}
+
+        <h4 class="mb-2">Specializations</h4>
+        {% if profile.specializations %}
+            <p>{{ profile.specializations }}</p>
+        {% else %}
+            <p class="text-muted"><em>No specializations added yet.</em></p>
+        {% endif %}
+
+        {% if not user|is_admin %}
+            <h4 class="mb-2">Projects Involved</h4>
+            <ul class="list-unstyled">
+                {% for item in projects %}
+                    <li class="mb-0">
+                        <a href="{% url 'project_main_view' item.project.name item.project.id %}" class="text-decoration-none">
+                            <strong>{{ item.project.name }}</strong>
+                        </a>
+                        {% if item.date_added %}
+                            <em><br><span class="text-muted small">Joined on: {{ item.date_added|date:"M d, Y" }}</span></em>
+                        {% endif %}
+                    </li>
+                {% empty %}
+                    {% if user == request.user %}
+                        <li class="text-muted"><em>You are not part of any projects yet.</em></li>
+                    {% else %}
+                        <li class="text-muted"><em>This user is not part of any projects yet.</em></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <h4 class="mb-2">Social Links</h4>
+        <ul class="list-inline">
+            {% if profile.linkedin or profile.github or profile.twitter %}
+                {% if profile.linkedin %}
+                    <li class="list-inline-item">
+                        <a href="{{ profile.linkedin }}" target="_blank" class="btn btn-outline-primary btn-sm">LinkedIn</a>
+                    </li>
+                {% endif %}
+                {% if profile.github %}
+                    <li class="list-inline-item">
+                        <a href="{{ profile.github }}" target="_blank" class="btn btn-outline-dark btn-sm">GitHub</a>
+                    </li>
+                {% endif %}
+                {% if profile.twitter %}
+                    <li class="list-inline-item">
+                        <a href="{{ profile.twitter }}" target="_blank" class="btn btn-outline-info btn-sm">Twitter</a>
+                    </li>
+                {% endif %}
+            {% else %}
+                <p class="text-muted"><em>No social links available.</em></p>
+            {% endif %}
+        </ul>
+
+        <!-- Edit Profile Button (only if the logged-in user is the profile owner) -->
+        {% if user == request.user %}
+            <a href="{% url 'edit_profile' %}" class="btn btn-primary btn-sm mt-3">Edit Profile</a>
+        {% endif %}
+
+        </div>
+            <!-- using the referer becomings buggy when users view their profile then edit it because it creates a cycle
+            so just send them back to the dashboard -->
+            {% if 'profile/edit' in referer %}
+<!--                <a href="{% url 'dashboard' %}" class="btn btn-secondary mt-3 w-50 mx-auto d-block" style="background-color: grey;">Home</a>-->
+            {% else %}
+                <a href="{{ referer }}" class="btn btn-secondary mt-3 w-100">Back</a>
+            {% endif %}
+        </div>
+
+</div>
+{% endblock %}
+
+<script src="{% static 'actions.js' %}"></script>

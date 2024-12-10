@@ -1,0 +1,239 @@
+{% block content %}
+{% load static %}
+{% load custom_filters %}
+<div class="container mt-3">
+    <h1 class="mb-4">All Projects</h1>
+
+    <!-- Search Form -->
+    <form method="get" action="{{ request.path }}" class="mb-4">
+        <div class="input-group">
+            <input 
+                type="text" 
+                name="q" 
+                placeholder="Search by title, description or category..." 
+                value="{{ search_query }}" 
+                class="form-control"
+            >
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+
+    <!-- Sorting Options -->
+    <div class="mb-4">
+        <strong>Sort by:</strong>
+        <div class="btn-group">
+            <a href="?sort=created_at{% if search_query %}&q={{ search_query }}{% endif %}" 
+                class="btn btn-outline-primary {% if sort_by == 'created_at' %}active{% endif %}">
+                Created At (Old to New)
+            </a>
+            <a href="?sort=-created_at{% if search_query %}&q={{ search_query }}{% endif %}" 
+                class="btn btn-outline-primary {% if sort_by == '-created_at' %}active{% endif %}">
+                Created At (New to Old)
+            </a>
+            <a href="?sort=due_date{% if search_query %}&q={{ search_query }}{% endif %}" 
+                class="btn btn-outline-primary {% if sort_by == 'due_date' %}active{% endif %}">
+                Due Date (Ascending)
+            </a>
+            <a href="?sort=-due_date{% if search_query %}&q={{ search_query }}{% endif %}" 
+                class="btn btn-outline-primary {% if sort_by == '-due_date' %}active{% endif %}">
+                Due Date (Descending)
+            </a>
+        </div>
+    </div>
+
+    {% if projects %}
+        <ul class="list-group">
+            {% for project in projects %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                    <!-- Upvote and Project Info -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <!-- Upvote Button -->
+                        <div class="me-3" >
+                            {% if user.is_authenticated and not is_pma_admin %}
+                            <button 
+                                class="btn" 
+                                onclick="upvoteProject('{{ project.id }}')" 
+                                id="upvote-button-{{ project.id }}">
+                                <i class="fas fa-arrow-up {% if project.user_has_upvoted %}filled{% endif %}" 
+                                id="upvote-icon-{{ project.id }}"></i>
+                            </button>
+                            <span id="upvote-count-{{ project.id }}">{{ project.upvotes }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Project Information -->
+                        <div class="project-info">
+                            <h5 class="fw-bold mb-1">
+                                <a href="{% url 'project_main_view' project.name project.id %}" class="text-decoration-none text-primary">
+                                    {{ project.name }}
+                                </a>
+                                <span class="badge bg-light text-dark me-2">[{{ project.owner.username }}]</span>
+                            </h5>
+                            <div class="small text-muted mb-2">
+                                {% if project.category %}
+                                    <span class="badge bg-light text-dark me-2">{{ project.category }}</span>
+                                {% endif %}
+                                {% if project.due_date %}
+                                    <span class="badge bg-light text-dark">Due: {{ project.due_date }}</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark">No Due Date</span>
+                                {% endif %}
+                            </div>
+                            <div class="project-description">
+                                {% if project.description %}
+                                    <p class="text-muted">{{ project.description|truncatechars:100 }}</p>
+                                {% else %}
+                                    <p class="text-muted"><em>No description available.</em></p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Button Based on User's Relationship -->
+                    <div class="d-flex justify-content-end align-items-center">
+                        {% if user.is_authenticated and not is_pma_admin%}
+                            {% if project_status and project_status|dict_key:project.id == 'member' %}
+                                {% if project.owner == request.user %}
+                                    <!-- Owner State -->
+                                    <span class="btn-status btn-owner">Owner</span>
+                                {% else %}
+                                    <!-- Member State -->
+                                    <form action="{% url 'leave_project' project.name project.id %}" method="post" class="d-inline-block">
+                                        {% csrf_token %}
+                                        <button 
+                                            type="submit" 
+                                            class="btn btn-sm btn-status btn-success custom-hover-btn"
+                                            data-default-text="Project Member" 
+                                            data-leave-text="Leave Project">
+                                            Project Member
+                                    </button>
+                                    </form>
+                                {% endif %}
+                            {% elif project_status|dict_key:project.id == 'pending' %}
+                                <!-- Pending Request State -->
+                                <button class="btn btn-sm btn-status btn-warning" disabled>
+                                    Request Pending
+                                </button>
+                            {% else %}
+                                <!-- Not a Member State -->
+                                {% if project.current_reviewers_count < project.number_of_reviewers %}
+                                    <form action="{% url 'request_to_join' project.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-status btn-primary">Request to Join</button>
+                                    </form>
+                                {% else %}
+                                    <span class="btn-status bg-danger text-white">Project Full</span>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                        {% if is_pma_admin %}
+                                    <form action="{% url 'delete_project' project.name project.id %}" method="post" class="d-inline-block">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-status bg-danger">Delete</button>
+                                    </form>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+
+<!--        {% if user.is_authenticated and not is_pma_admin%}-->
+<!--            &lt;!&ndash; Back to Home Button &ndash;&gt;-->
+<!--            <div class="mt-3">-->
+<!--                <a href="{% url 'dashboard' %}" class="btn btn-secondary me-2" style="background-color: grey;">Home</a>-->
+<!--            </div>-->
+<!--        {% endif %}-->
+
+
+    {% else %}
+        <p>No projects available.</p>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+<script src="{% static 'actions.js' %}"></script>
+
+<script>
+    // Add hover effect to buttons with the `data-leave-text` attribute
+    document.querySelectorAll('button[data-leave-text]').forEach(button => {
+        const defaultText = button.getAttribute('data-default-text');
+        const leaveText = button.getAttribute('data-leave-text');
+
+        // Change text on hover
+        button.addEventListener('mouseenter', () => {
+            button.textContent = leaveText;
+        });
+
+        // Revert text on mouse leave
+        button.addEventListener('mouseleave', () => {
+            button.textContent = defaultText;
+        });
+    });
+</script>
+
+<style>
+    .list-group-item {
+        padding: 0.5rem 0.75rem !important; /* Reduce box padding */
+        margin-bottom: 0 !important; /* Remove spacing between items */
+        border-bottom: 1px solid #dee2e6; /* Optional: Add subtle border for separation */
+    }
+
+    .btn-status {
+        width: 150px;
+        text-align: center;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        border-radius: 0.25rem;
+    }
+
+    .btn-owner {
+        background-color: #001f3f; /* Navy blue */
+        color: white;
+        border: none; /* Removes badge border */
+    }
+
+    .project-info h5 {
+        font-size: 1.1rem; /* Slightly smaller project name */
+        margin-bottom: 0.25rem; /* Tighten spacing below the name */
+    }
+    
+    .project-info a {
+        color: #007bff; /* Bootstrap primary blue */
+        text-decoration: none;
+    }
+    
+    .project-info a:hover {
+        color: #0056b3; /* Darker shade on hover */
+    }
+    
+    .project-info .badge {
+        font-size: 0.85rem;
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.2rem;
+    }
+    
+    .project-info .badge.bg-light {
+        background-color: #f8f9fa; /* Subtle light gray */
+        color: #495057; /* Dark muted text */
+    }
+
+    .project-info .project-description {
+        margin: 0; /* Ensure no margin around the container */
+        padding: 0; /* Ensure no padding around the container */
+    }
+    
+    .project-info .project-description p {
+        margin: 0; /* Remove margin below the paragraph */
+        padding: 0; /* Remove padding inside the paragraph */
+        font-size: 0.9rem; /* Maintain readability */
+        line-height: 1.3; /* Compact line spacing */
+    }
+    button.custom-hover-btn:hover {
+        border: 1.5px solid red;
+        background-color: transparent;
+        color: red;
+    }
+
+</style>

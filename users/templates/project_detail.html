@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+<h2>Pending Join Requests</h2>
+{% if pending_requests %}
+    <ul>
+        {% for join_request in pending_requests %}
+            <li>
+                {{ join_request.user.username }}
+                <a href="{% url 'accept_join_request' join_request.id %}" class="btn btn-success">Accept</a>
+                <a href="{% url 'deny_join_request' join_request.id %}" class="btn btn-danger">Deny</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No pending join requests.</p>
+{% endif %}

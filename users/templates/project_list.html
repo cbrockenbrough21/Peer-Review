@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% load static %}
+
+{% block content %}
+        <!-- Include the Partial Template for the Project List -->
+        {% include 'partials/project_list.html' with projects=projects project_status=project_status project_permissions=project_permissions sort_by=sort_by is_pma_admin=is_pma_admin search_query=search_query%}
+{% endblock %}
+
+<script src="{% static 'actions.js' %}"></script>

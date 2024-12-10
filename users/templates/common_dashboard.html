@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %} Common User Dashboard {% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h1>Welcome, {{ user_name }}!</h1>
+    <p class="text-muted">This is your dashboard for our peer editing platform. You can create and manage your own projects or join others to collaborate and share feedback.</p>
+
+    <!-- Two-Column Layout -->
+    <div class="row mt-4">
+        <!-- Column for Project Actions -->
+        <div class="col-md-3">
+            <!-- Create Project Section -->
+            <div class="card card-create-project mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">Create a New Project</h4>
+                    <a href="{% url 'create_project' %}" class="btn btn-primary w-100">
+                        <i class="fas fa-plus me-2"></i>Create Project
+                    </a>
+                </div>
+            </div>
+
+            <!-- View All Projects Section -->
+            <div class="card card-view-projects mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">View All Projects</h4>
+                    <a href="{% url 'project_list' %}" class="btn btn-secondary w-100">
+                        <i class="fas fa-list-ul me-2"></i>View Projects
+                    </a>
+                </div>
+            </div>
+
+                    <!-- Logout Button Section -->
+            <div class="card card-logout mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">Logout</h4>
+                    <a href="{% url 'logout' %}" class="btn btn-danger w-100">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column for Owned Projects and Member Projects -->
+        <div class="col-md-8">
+            <!-- Owned Projects Section -->
+            <div class="card card-owned-projects mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">Your Owned Projects</h4>
+                    {% if owned_projects %}
+                        <ul class="list-group">
+                            {% for project in owned_projects %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="{% url 'project_main_view' project.name project.id %}" class="text-decoration-none">
+                                        {{ project.name }}
+                                    </a>
+                                    <span class="badge bg-primary">Owner</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="mt-2 text-muted"><em>You don't own any projects yet.</em></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Member Projects Section -->
+            <div class="card card-member-projects mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">Your Joined Projects</h4>
+                    {% if member_projects %}
+                        <ul class="list-group">
+                            {% for project in member_projects %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="{% url 'project_main_view' project.name project.id %}" class="text-decoration-none">
+                                        {{ project.name }}
+                                    </a>
+                                    <span class="badge bg-info">Member</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="mt-2 text-muted"><em>You are not a member of any projects yet.</em></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card card-member-projects mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">Projects with Requests</h4>
+                    {% if project_requests %}
+                        <ul class="list-group">
+                            {% for project in project_requests %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="{% url 'manage_join_requests' project.id %}" class="text-decoration-none">
+                                        {{ project.name }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="mt-2 text-muted"><em>There are no current requests for your projects.</em></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#userGuideContent" aria-expanded="false" aria-controls="userGuideContent">
+                            User Guide
+                        </button>
+                    </h5>
+                </div>
+                <div id="userGuideContent" class="collapse">
+                    <div class="card-body">
+                        <h6>Project Creators</h6>
+                        <ul class="list-group mb-3">
+                            <li class="list-group-item">Step 1: Select 'Create A Project' through this dashboard.</li>
+                            <li class="list-group-item">Step 2: Provide as much detail as possible during project creation to ensure high quality feedback.</li>
+                            <li class="list-group-item">Step 3: Review your project page; post helpful messages if necessary.</li>
+                            <li class="list-group-item">Step 4: Upload your work, providing key words and other useful information.</li>
+                            <li class="list-group-item">Step 5: Open your file in the application and add any review prompts you may want feedback on.</li>
+                            <li class="list-group-item">Step 6: Invite people to review your project through the 'Users' tab or your project homepage.</li>
+                            <li class="list-group-item">Step 7: Wait for Feedback! Prepare to incorporate any advice to improve your work!</li>
+                        </ul>
+            
+                        <h6>Project Reviewers</h6>
+                        <ul class="list-group">
+                            <li class="list-group-item">Step 1: Browse Projects through the 'Projects' or 'Popular' tab.</li>
+                            <li class="list-group-item">Step 2: Request to join projects or accept an invite to a project through the 'Invites' tab.</li>
+                            <li class="list-group-item">Step 3: After joining, navigate to the project through the dashboard page, your profile, or by searching for the project.</li>
+                            <li class="list-group-item">Step 4: Review the project details: rubric, review guidelines, messages, etc. </li>
+                            <li class="list-group-item">Step 5: Select the file you wish to review.</li>
+                            <li class="list-group-item">Step 6: Respond to any provided prompts or create your own response.</li>
+                            <li class="list-group-item">Step 7: Upload any completed rubrics, review forms, or other feedback to the project page.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        
+    </div>
+</div>
+<style>
+    /* Add subtle shadows to cards */
+    .card {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Blue edge for Owned Projects and Create Project */
+    .card-create-project,
+    .card-owned-projects {
+        border-left: 4px solid #007bff; /* Bootstrap primary blue */
+    }
+
+    /* Teal edge for Joined Projects and View All Projects */
+    .card-view-projects,
+    .card-member-projects {
+        border-left: 4px solid #17a2b8; /* Bootstrap teal */
+    }
+
+    /* Section headers */
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+
+    /* Add spacing between sections */
+    .row > div {
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}

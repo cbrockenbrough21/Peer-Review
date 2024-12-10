@@ -1,0 +1,138 @@
+{% load static %}
+{% load socialaccount %}
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %} Peer Review App {% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/5.0.0/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* Make html and body take full height */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        /* Make body a flex container */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+        }
+        /* Main content should flex to fill the space */
+        .main-content {
+            flex: 1;
+        }
+        footer {
+            padding-left: 15px;
+            padding-right: 15px;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <img src="{% static 'images/pencil.png' %}" alt="Pencil Logo" height="30" class="d-inline-block align-text-top">
+                Peer Review App
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                {% if user.is_authenticated %}
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                        </li>
+                        {% if request.user|is_admin %}
+                        <!-- do not show all projects & popular projects button -->
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'project_list' %}">Projects</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'popular_projects' %}">
+                                    Popular
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'search_users' %}">Users</a>
+                        </li>
+                        {% if request.user|is_admin %}
+                        <!-- do not show invites button -->
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'view_invites' %}">
+                                    Invites
+                                    {% if request.user|pending_invites_count > 0 %}
+                                        <span class="badge bg-danger">{{ request.user|pending_invites_count }}</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'view_profile' request.user.id %}">Profile</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link" href="{% url 'settings' %}">Settings</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                        </li>
+                </ul>
+                {% else %}
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% provider_login_url 'google' %}?next=/">Login</a>
+                        </li>
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <div class="container main-content">
+        {% block content %}
+        <!-- Child templates will inject content here -->
+        {% endblock %}
+    </div>
+
+    <div style="clear: both;"></div>
+    <!-- Footer -->
+    <footer class="bg-light text-center text-lg-start mt-4 clearfix">
+        <div class="container p-4">
+            <p>Authors: Aleya Banthavong, Ahmed Mohamed, Catherine Brockenbrough, Ryan Leyhe, Kyle Phillips </p>
+            <p>&copy; 2024 Peer Review App, Software Engineering CS3240 UVA. All rights reserved.</p>
+            <p><strong>Disclaimer:</strong> This application is a class project and is not actively monitored. No real information should be submitted.</p>
+        </div>
+    </footer>
+
+    <!-- Include the scripts block here -->
+    {% block scripts %}
+    <!-- Child templates can inject scripts here -->
+    {% endblock %}
+
+    <!-- Include Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block extra_scripts %}
+    <script src="{% static 'actions.js' %}"></script>
+    {% endblock %}
+</body>
+</html>
